@@ -9,7 +9,7 @@
 // firing ETW events (not for getting a full profapi up on redhawk).
 // 
 
-#if defined(FEATURE_EVENT_TRACE) || defined(GC_PROFILING)
+#if defined(FEATURE_EVENT_TRACE)
 
 #include "CommonTypes.h"
 #include "daccess.h"
@@ -212,4 +212,4 @@ BOOL HeapWalkHelper(Object * pBO, void * pvContext)
     return TRUE;
 }
 
-#endif // defined(FEATURE_EVENT_TRACE) || defined(GC_PROFILING)
+#endif // defined(FEATURE_EVENT_TRACE)
