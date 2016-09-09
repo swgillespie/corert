@@ -68,7 +68,7 @@
 // Thread
 //
 
-struct alloc_context;
+struct gc_alloc_context;
 
 class Thread
 {
@@ -98,9 +98,9 @@ public:
         m_fPreemptiveGCDisabled = true;
     }
 
-    alloc_context* GetAllocContext()
+    gc_alloc_context* GetAllocContext()
     {
-        return (alloc_context *)&m_alloc_context;
+        return (gc_alloc_context *)&m_alloc_context;
     }
 
     void SetGCSpecial(bool fGCSpecial)
