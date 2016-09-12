@@ -64,11 +64,14 @@
 
 #define LOG(x)
 
+#define SVAL_IMPL_INIT(type, cls, var, init) \
+    type cls::var = init
+
 //
 // Thread
 //
 
-struct gc_alloc_context;
+struct alloc_context;
 
 class Thread
 {
@@ -98,9 +101,9 @@ public:
         m_fPreemptiveGCDisabled = true;
     }
 
-    gc_alloc_context* GetAllocContext()
+    alloc_context* GetAllocContext()
     {
-        return (gc_alloc_context *)&m_alloc_context;
+        return (alloc_context *)&m_alloc_context;
     }
 
     void SetGCSpecial(bool fGCSpecial)

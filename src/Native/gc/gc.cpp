@@ -34116,6 +34116,7 @@ BOOL GCHeap::StressHeap(gc_alloc_context * context)
 
     return TRUE;
 #else
+    UNREFERENCED_PARAMETER(context);
     return FALSE;
 #endif // defined(STRESS_HEAP) && !defined(FEATURE_REDHAWK)
 }
@@ -34280,6 +34281,8 @@ GCHeap::AllocAlign8( size_t size, uint32_t flags)
 
     return newAlloc;
 #else
+    UNREFERENCED_PARAMETER(size);
+    UNREFERENCED_PARAMETER(flags);
     assert(!"should not call GCHeap::AllocAlign8 without FEATURE_64BIT_ALIGNMENT defined!");
     return nullptr;
 #endif  //FEATURE_64BIT_ALIGNMENT
@@ -34316,6 +34319,9 @@ GCHeap::AllocAlign8(gc_alloc_context* ctx, size_t size, uint32_t flags )
 
     return AllocAlign8Common(hp, acontext, size, flags);
 #else
+    UNREFERENCED_PARAMETER(ctx);
+    UNREFERENCED_PARAMETER(size);
+    UNREFERENCED_PARAMETER(flags);
     assert(!"should not call GCHeap::AllocAlign8 without FEATURE_64BIT_ALIGNMENT defined!");
     return nullptr;
 #endif  //FEATURE_64BIT_ALIGNMENT
@@ -34446,6 +34452,10 @@ GCHeap::AllocAlign8Common(void* _hp, alloc_context* acontext, size_t size, uint3
 #endif //TRACE_GC
     return newAlloc;
 #else
+    UNREFERENCED_PARAMETER(_hp);
+    UNREFERENCED_PARAMETER(acontext);
+    UNREFERENCED_PARAMETER(size);
+    UNREFERENCED_PARAMETER(flags);
     assert(!"Should not call GCHeap::AllocAlign8Common without FEATURE_64BIT_ALIGNMENT defined!");
     return nullptr;
 #endif // FEATURE_64BIT_ALIGNMENT
