@@ -32,6 +32,10 @@ namespace System.Runtime
         [RuntimeImport(RuntimeLibrary, "RhCollect")]
         internal static extern void RhCollect(int generation, InternalGCCollectionMode mode);
 
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        [RuntimeImport(RuntimeLibrary, "RhGetGenerationWR")]
+        internal static extern int RhGetGenerationWR(Object obj);
+
         // Mark an object instance as already finalized.
         [MethodImpl(MethodImplOptions.InternalCall)]
         [RuntimeImport(RuntimeLibrary, "RhSuppressFinalize")]
@@ -118,6 +122,30 @@ namespace System.Runtime
         [MethodImpl(MethodImplOptions.InternalCall)]
         [RuntimeImport(RuntimeLibrary, "RhpRegisterFrozenSegment")]
         internal static extern bool RhpRegisterFrozenSegment(IntPtr pSegmentStart, int length);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        [RuntimeImport(RuntimeLibrary, "RhRegisterForFullGCNotification")]
+        internal static extern void RhRegisterForFullGCNotification(int maxGenerationThreshold, int largeObjectHeapThreshold);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        [RuntimeImport(RuntimeLibrary, "RhWaitForFullGCApproach")]
+        internal static extern int RhWaitForFullGCApproach(int millisecondsTimeout);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        [RuntimeImport(RuntimeLibrary, "RhWaitForFullGCComplete")]
+        internal static extern int RhWaitForFullGCComplete(int millisecondsTimeout);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        [RuntimeImport(RuntimeLibrary, "RhCancelFullGCNotification")]
+        internal static extern bool RhCancelFullGCNotification();
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        [RuntimeImport(RuntimeLibrary, "RhStartNoGCRegion")]
+        internal static extern int RhStartNoGCRegion(long totalSize, bool hasLohSize, long lohSize, bool disallowFullBlockingGC);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        [RuntimeImport(RuntimeLibrary, "RhEndNoGCRegion")]
+        internal static extern int RhEndNoGCRegion();
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         [RuntimeImport(RuntimeLibrary, "RhpShutdown")]

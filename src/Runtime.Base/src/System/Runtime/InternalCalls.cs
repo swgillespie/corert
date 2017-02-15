@@ -55,6 +55,15 @@ namespace System.Runtime
         [DllImport(Redhawk.BaseName, CallingConvention = CallingConvention.Cdecl)]
         private static extern long RhpGetGcTotalMemory();
 
+        [RuntimeExport("RhGetGenerationWR")]
+        internal static int RhGetGenerationWR(Object wr)
+        {
+            return RhpGetGenerationWR(wr);
+        }
+
+        [DllImport(Redhawk.BaseName, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int RhpGetGenerationWR(Object wr);
+
         //
         // internalcalls for System.Runtime.__Finalizer.
         //

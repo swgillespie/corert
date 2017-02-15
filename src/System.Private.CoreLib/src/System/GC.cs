@@ -30,12 +30,37 @@ namespace System
         Optimized = 2
     }
 
+    public enum GCNotificationStatus
+    {
+        Succeeded     = 0,
+        Failed        = 1,
+        Canceled      = 2,
+        Timeout       = 3,
+        NotApplicable = 4
+    }
+
     internal enum InternalGCCollectionMode
     {
         NonBlocking = 0x00000001,
         Blocking = 0x00000002,
         Optimized = 0x00000004,
         Compacting = 0x00000008,
+    }
+
+    internal enum StartNoGCRegionStatus
+    {
+        Succeeded = 0,
+        NotEnoughMemory = 1,
+        AmountTooLarge = 2,
+        AlreadyInProgress = 3
+    }
+
+    internal enum EndNoGCRegionStatus
+    {
+        Succeeded = 0,
+        NotInProgress = 1,
+        GCInduced = 2,
+        AllocationExceeded = 3
     }
 
     public static class GC
@@ -48,6 +73,18 @@ namespace System
             }
 
             return RuntimeImports.RhGetGeneration(obj);
+        }
+
+        public static int GetGeneration(WeakReference wr)
+        {
+            int result = RuntimeImports.RhGetGenerationWR(wr.m_handle);
+            if (result == -1)
+            {
+                throw new ArgumentNullException(nameof(wr));
+            }
+
+            KeepAlive(wr);
+            return result;
         }
 
         // Forces a collection of all generations from 0 through Generation.
@@ -107,6 +144,119 @@ namespace System
             }
 
             RuntimeImports.RhCollect(generation, (InternalGCCollectionMode)iInternalModes);
+        }
+
+        public static void RegisterForFullGCNotification(int maxGenerationThreshold, int largeObjectHeapThreshold)
+        {
+            if (maxGenerationThreshold < 1 || maxGenerationThreshold > 99)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maxGenerationThreshold));
+            }
+
+            if (largeObjectHeapThreshold < 1 || largeObjectHeapThreshold > 99)
+            {
+                throw new ArgumentOutOfRangeException(nameof(largeObjectHeapThreshold));
+            }
+
+            RuntimeImports.RhRegisterForFullGCNotification(maxGenerationThreshold, largeObjectHeapThreshold);
+        }
+
+        public static GCNotificationStatus WaitForFullGCApproach()
+        {
+            return (GCNotificationStatus)RuntimeImports.RhWaitForFullGCApproach(-1);
+        }
+
+        public static GCNotificationStatus WaitForFullGCApproach(int millisecondsTimeout)
+        {
+            if (millisecondsTimeout < -1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(millisecondsTimeout));
+            }
+
+            return (GCNotificationStatus)RuntimeImports.RhWaitForFullGCApproach(millisecondsTimeout);
+        }
+
+        public static GCNotificationStatus WaitForFullGCComplete()
+        {
+            return (GCNotificationStatus)RuntimeImports.RhWaitForFullGCComplete(-1);
+        }
+
+        public static GCNotificationStatus WaitForFullGCComplete(int millisecondsTimeout)
+        {
+            if (millisecondsTimeout < -1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(millisecondsTimeout));
+            }
+
+            return (GCNotificationStatus)RuntimeImports.RhWaitForFullGCComplete(millisecondsTimeout);
+        }
+
+        public static void CancelFullGCNotification()
+        {
+            if (!RuntimeImports.RhCancelFullGCNotification())
+            {
+                // TODO(resources)
+                throw new InvalidOperationException("");
+            }
+        }
+
+        public static bool TryStartNoGCRegion(long totalSize)
+        {
+            return StartNoGCRegionWorker(totalSize, false, 0, false);
+        }
+
+        public static bool TryStartNoGCRegion(long totalSize, long lohSize)
+        {
+            return StartNoGCRegionWorker(totalSize, true, lohSize, false);
+        }
+
+        public static bool TryStartNoGCRegion(long totalSize, bool disallowFullBlockingGC)
+        {
+            return StartNoGCRegionWorker(totalSize, false, 0, disallowFullBlockingGC);
+        }
+
+        public static bool TryStartNoGCRegion(long totalSize, long lohSize, bool disallowFullBlockingGC)
+        {
+            return StartNoGCRegionWorker(totalSize, true, lohSize, disallowFullBlockingGC);
+        }
+
+        private static bool StartNoGCRegionWorker(long totalSize, bool hasLohSize, long lohSize, bool disallowFullBlockingGC)
+        {
+            // TODO(segilles) resources
+            StartNoGCRegionStatus status =
+                (StartNoGCRegionStatus)RuntimeImports.RhStartNoGCRegion(totalSize, hasLohSize, lohSize, disallowFullBlockingGC);
+            if (status == StartNoGCRegionStatus.AmountTooLarge)
+            {
+                throw new ArgumentOutOfRangeException(nameof(totalSize));
+            }
+            else if (status == StartNoGCRegionStatus.AlreadyInProgress)
+            {
+                throw new InvalidOperationException();
+            }
+            else if (status == StartNoGCRegionStatus.NotEnoughMemory)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public static void EndNoGCRegion()
+        {
+            // TODO(segilles) resources
+            EndNoGCRegionStatus status = (EndNoGCRegionStatus)RuntimeImports.RhEndNoGCRegion();
+            if (status == EndNoGCRegionStatus.NotInProgress)
+            {
+                throw new InvalidOperationException("NoGCRegion mode must be set");
+            }
+            else if (status == EndNoGCRegionStatus.GCInduced)
+            {
+                throw new InvalidOperationException("Garbage collection was induced in NoGCRegion mode");
+            }
+            else if (status == EndNoGCRegionStatus.AllocationExceeded)
+            {
+                throw new InvalidOperationException("Allocated memory exceeds specified memory for NoGCRegion mode");
+            }
         }
 
         // Block until the next finalization pass is complete.
